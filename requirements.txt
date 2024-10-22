@@ -1,4 +1,4 @@
-Flask
-speedtest-cli
-gunicorn
+Flask==2.2.2
+speedtest-cli==2.1.2
+Flask-Cors==3.0.10
 
