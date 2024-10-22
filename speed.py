@@ -1,19 +1,26 @@
+import logging
 from flask import Flask, render_template, jsonify
 import speedtest
 import threading
-import time
+import os
 
 app = Flask(__name__)
 
-# Use a dictionary to store speed data
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
 speed_data = {"download": 0, "upload": 0}
 
 def run_speed_test():
     global speed_data
-    st = speedtest.Speedtest()
-    st.get_best_server()
-    speed_data['download'] = st.download() / 1_000_000  # Convert to Mbps
-    speed_data['upload'] = st.upload() / 1_000_000  # Convert to Mbps
+    try:
+        st = speedtest.Speedtest()
+        st.get_best_server()
+        speed_data['download'] = st.download() / 1_000_000  # Convert to Mbps
+        speed_data['upload'] = st.upload() / 1_000_000  # Convert to Mbps
+        logging.info(f"Download: {speed_data['download']} Mbps, Upload: {speed_data['upload']} Mbps")
+    except Exception as e:
+        logging.error(f"Error running speed test: {e}")
 
 @app.route('/')
 def index():
@@ -30,5 +37,4 @@ def results():
     return jsonify(speed_data)
 
 if __name__ == "__main__":
-    # Use host and port as per Heroku requirements
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
