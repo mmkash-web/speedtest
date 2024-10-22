@@ -5,6 +5,7 @@ import time
 
 app = Flask(__name__)
 
+# Use a dictionary to store speed data
 speed_data = {"download": 0, "upload": 0}
 
 def run_speed_test():
@@ -29,4 +30,5 @@ def results():
     return jsonify(speed_data)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Use host and port as per Heroku requirements
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
