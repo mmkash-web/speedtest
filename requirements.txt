@@ -1,4 +1,6 @@
-Flask==2.2.2
+Flask==2.2.2  # or the version you need
+Werkzeug==2.2.3  # Ensure this version is compatible
 speedtest-cli==2.1.2
 Flask-Cors==3.0.10
 gunicorn==20.1.0
+
