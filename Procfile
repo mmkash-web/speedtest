@@ -1,2 +1,3 @@
-web: gunicorn speed:application
+web: gunicorn speed:app
+
 
