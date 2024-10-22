@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Speed Test | Emmkash Tech</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0e0f12;
+            color: #fff;
+            margin: 0;
+        }
+
+        #speedTest {
+            text-align: center;
+            background: #1a1a1d;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 24px;
+            color: #fff;
+        }
+
+        h2 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: #ff007f;
+        }
+
+        .dial {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: conic-gradient(#ff007f, #002fff, #00ffa2, #ff007f);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dial-inner {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            background-color: #222;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .needle {
+            position: absolute;
+            width: 4px;
+            height: 120px;
+            background-color: #ff007f;
+            transform-origin: bottom center;
+            transform: rotate(-90deg);
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .speed-display {
+            font-size: 56px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        .unit {
+            font-size: 20px;
+            color: #aaa;
+        }
+
+        .start-button {
+            margin-top: 30px;
+            padding: 10px 30px;
+            background-color: #ff007f;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .start-button:hover {
+            background-color: #ff005f;
+        }
+
+        .unit-display {
+            font-size: 20px;
+            margin-top: 5px;
+            color: #aaa;
+        }
+
+        .marker {
+            position: absolute;
+            font-size: 14px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Positioning the numbers like a clock */
+        .marker-0 { top: 135px; left: 0; }
+        .marker-20 { top: 50px; left: 50px; }
+        .marker-40 { top: 0; left: 135px; }
+        .marker-60 { top: 50px; right: 50px; }
+        .marker-80 { top: 135px; right: 0; }
+        .marker-100 { bottom: 0; left: 135px; }
+
+        .network-info {
+            margin-top: 20px;
+            font-size: 16px;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div id="speedTest">
+        <h1>Speed Test</h1>
+        <h2>Powered by Emmkash Tech</h2>
+        <div class="dial">
+            <div class="dial-inner">
+                <div class="needle" id="needle"></div>
+            </div>
+
+            <!-- Speed markers like a clock -->
+            <div class="marker marker-0">0</div>
+            <div class="marker marker-20">20</div>
+            <div class="marker marker-40">40</div>
+            <div class="marker marker-60">60</div>
+            <div class="marker marker-80">80</div>
+            <div class="marker marker-100">100</div>
+        </div>
+        <div class="speed-display" id="speedDisplay">0</div>
+        <div class="unit-display">Mbps</div>
+
+        <!-- Network info section -->
+        <div class="network-info">
+            <p>Server: <span id="serverName">Loading...</span></p>
+            <p>Provider: <span id="providerName">Loading...</span></p>
+        </div>
+
+        <button class="start-button" id="startTest">Start Test</button>
+
+        <footer>© 2024 Emmkash Tech. All rights reserved.</footer>
+    </div>
+
+    <script>
+        document.getElementById('startTest').addEventListener('click', function() {
+            fetch('/test_speed', { method: 'POST' })
+                .then(response => {
+                    if (response.ok) {
+                        monitorSpeed();
+                    }
+                });
+        });
+
+        // Fetch network information using an IP info API (like ipinfo.io)
+        function fetchNetworkInfo() {
+            fetch('https://ipinfo.io?token=80eb2f10e2814c') // Replace with your IPInfo token
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('serverName').textContent = data.city || 'Unknown';
+                    document.getElementById('providerName').textContent = data.org || 'Unknown';
+                })
+                .catch(error => {
+                    console.error('Error fetching network info:', error);
+                    document.getElementById('serverName').textContent = 'Unavailable';
+                    document.getElementById('providerName').textContent = 'Unavailable';
+                });
+        }
+
+        // Call this function on page load
+        fetchNetworkInfo();
+
+        function monitorSpeed() {
+            const needle = document.getElementById('needle');
+            const speedDisplay = document.getElementById('speedDisplay');
+
+            let interval = setInterval(() => {
+                fetch('/results')
+                    .then(response => response.json())
+                    .then(data => {
+                        const speed = Math.max(data.download, data.upload).toFixed(2);
+                        speedDisplay.textContent = speed;
+
+                        // Mapping speed to 0-100 to needle rotation (-90 to 90 degrees)
+                        const angle = Math.min((speed / 100) * 180, 180);
+                        needle.style.transform = `rotate(${angle - 90}deg)`;
+
+                        if (speed >= 100) {
+                            clearInterval(interval);
+                        }
+                    });
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
